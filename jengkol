@@ -1,0 +1,168 @@
+
+
+    public function hapusDataTicketing(Request $request)
+    {
+        $tiket = Ticketing::where('id', $request->id)->first();
+        if($tiket) {
+            if($tiket->delete()) {
+                if(Auth::user()->id == 108 || Auth::user()->id == 1) {
+                    return redirect()->route('home');
+                } else {
+                    return redirect()->back()->with([
+                        'type'      => 'info',
+                        'message'   => '<i class="em em-email mr-2"></i>Successfully deleted!'
+                   ]);
+                }
+               
+            } else {
+                return redirect()->back()->with([
+                    'type'      => 'danger',
+                    'message'   => '<i class="em em-email mr-2"></i>An error occurred!'
+               ]);
+            }
+
+ 
+    }
+    
+    
+    public function dataTiketAdminRD($status)
+	{
+        $cekUser = UserMap::where('user_id', Auth::user()->id)->first()->ms_section1_id;
+        if($cekUser) {
+            $tiketing = Ticketing::where([
+                'status'        => $status,
+                'ms_section1_id'=> $cekUser
+            ])->orderBy('created_at', "DESC")->get();
+        } else {
+            $tiketing = Ticketing::where([
+                'status'        => $status
+            ])->orderBy('created_at', "DESC")->get();
+        }
+        return DataTables::of($tiketing)
+        ->addColumn('datee', function($data){
+            if($data->status == "New") {
+                return "<span class='font-w700 text-uppercase'>Tanggal Request : <i class='fa fa-calendar'></i> ".Carbon::parse($data->date)->formatLocalized("%B, %d %Y")."</span>";
+            } elseif($data->status == "Progress") {
+                return "<span class='font-w700 text-uppercase'>Tanggal Proses : <i class='fa fa-calendar'></i> ".Carbon::parse($data->updated_at)->formatLocalized("%B, %d %Y")."</span>";
+            } else {
+                return "<span class='font-w700 text-uppercase'>Tanggal Selesai : <i class='fa fa-calendar'></i> ".Carbon::parse($data->updated_at)->formatLocalized("%B, %d %Y")."</span>";
+            }
+        })
+        ->addColumn('sender', function($data){
+            return User::where('id', $data->sender)->first()->name;
+        })
+        ->addColumn('section', function($data){
+            return $data->section1->name;
+        })
+        ->addColumn('action', function ($data) {
+            $now = strtotime(Carbon::now(new DateTimeZone('Asia/Jakarta'))->toDateTimeString());
+            $created = strtotime($data->updated_at->toDateTimeString());
+            $selisih = gmdate($now - $created);
+            $month = floor($selisih / 2592000);
+            $weeks = floor($selisih / 604800);
+            $days = floor($selisih / 86400);
+            $hours = floor($selisih / 3600);
+            $minutes = floor(($selisih / 60) % 60);
+            $seconds = $selisih % 60;
+            if($selisih >= 60 and $selisih < 3600) {
+                $time = $minutes." min ago";
+            } else if($selisih >= 3600 and $selisih < 86400) {
+                $time = $hours." hours ago";
+            } else if($selisih < 60) {
+                $time = $seconds." second ago";
+            } else if($selisih >= 604800 and $selisih < 2592000)  {
+                $time = $weeks." week ago";
+            } else if($selisih >= 86400 and  $selisih < 604800) {
+                $time = $days." day ago";
+            } else if($selisih >= 2592000) {
+                $time = $month." month ago";
+            }
+            if($data->file) {
+                $fille = '<a target="_blank" href='.asset('/uploads/rnd').'/'.$data->file.'><i class="fa fa-download mr-2"></i>Download File</a>';
+            } else {
+                $fille = 'N/A';
+            }
+            if($data->file_feed) {
+                $fileFeed = '<a target="_blank" href='.asset('/uploads/rnd/feed').'/'.$data->file_feed.'><i class="fa fa-download mr-2"></i>Download File Feedback</a>';
+            } else {
+                $fileFeed = null;
+            }
+            // dd($fileFeed);
+            $val = array(
+                'id'            => $data->id,
+                'time'          => $time,
+                'reqD'          => Carbon::parse($data->date)->formatLocalized("%B, %d %Y"),
+                'sender'        => "<b>".$data->send->name."</b>",
+                'plant'         => $data->plant->name,
+                'email'         => $data->send->email,
+                'status'        => $data->status,
+                'nomor'         => $data->nomor_batch,
+                'desk'          => $data->deskripsi,
+                'kode'          => $data->kode_produk,
+                'produk'        => $data->produk,
+                'feedback'      => $data->feedback,
+                'qty'           => $data->qty,
+                'group'         => '<i class="fa fa-building mr-2"></i>'.$data->section1->name,
+                'file'          => $fille,
+                'fileFeed'      => $fileFeed
+            );
+            return "
+          
+            <a href='javascript:void(0)' onclick='showModal(".json_encode($val).")' class='btn btn-sm btn-outline-info btn-square' title='Informasi'>Detail</a>
+            <button data-url=".route('hapusDataTicketing', $data->id)." class='btn btn-sm btn-danger btn-square js-swal-delete' title='Delete'><i class='si si-trash'></i></button>";
+        })
+        ->addColumn('status', function($data){
+            if($data->status == "New") {
+                return "<span class='badge badge-info'>".$data->status."</span>";
+            } else if($data->status == "Progress") {
+                return "<span class='badge badge-primary'>".$data->status."</span>";
+            } else {
+                return "<span class='badge badge-success'>".$data->status."</span>";
+            }
+        })
+        ->rawColumns(['action', 'datee', 'status'])
+        ->make(true);
+    }
+    
+    Route::group(['prefix' => 'tiketing-rnd'], function () {
+    Route::get('/admin/{status}', 'TiketingController@viewTiketRND')->name('tiket.index')->middleware('auth');
+    Route::get('/sender', function () {
+        return view('tiket.indexSender');
+    })->name('tiket.indexSender')->middleware('auth');
+    Route::get('/sender/add', function () {
+        return view('tiket.add');
+    })->name('tiket.add')->middleware('auth');
+    Route::post('/post-tiket', 'TiketingController@buatTiket')->name('buatTiket')->middleware('auth');
+    Route::get('/dataAdmin/{status}', 'TiketingController@dataTiketAdminRD')->name('dataTiketAdminRD'); //Data Tiket RND Admin
+    Route::get('/dataSender', 'TiketingController@dataTiketSender')->name('dataTiketSender'); //Data Tiket RND Sender
+    Route::post('/delete', 'TiketingController@hapusTiket')->name('hapusTiket')->middleware('auth');
+    Route::post('/change-status', 'TiketingController@changeStatusAdmin')->name('changeStatusAdmin')->middleware('auth');
+    Route::post('/buatFeedback', 'TiketingController@buatFeedback')->name('buatFeedback')->middleware('auth');
+    Route::get('/getUserBYSection1', 'TiketingController@getUserBYSection1')->name('getUserBYSection1')->middleware('auth');
+    Route::get('/exportDone', 'TiketingController@exportDone')->name('exportDone')->middleware('auth');
+    Route::get('/delete/{id}', 'TiketingController@hapusDataTicketing')->name('hapusDataTicketing')->middleware('auth');
+});
+
+
+        <script>
+    function hapusDataTicketing(id) {
+        if (confirm('Anda yakin ingin menghapus data ini?')) {
+            // Kirim permintaan AJAX ke endpoint untuk menghapus data
+            $.ajax({
+                url: '/ticketing/hapus/' + id, // Ganti dengan endpoint yang sesuai
+                type: 'DELETE',
+                dataType: 'json',
+                success: function (response) {
+                    // Tampilkan pesan sukses atau lakukan aksi lain setelah menghapus data
+                    alert(response.message);
+                    // Refresh DataTables untuk memperbarui tampilan data
+                    $('#tiketing-table').DataTable().ajax.reload();
+                },
+                error: function (xhr, status, error) {
+                    // Tangani kesalahan jika terjadi
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+    }
+</script>
