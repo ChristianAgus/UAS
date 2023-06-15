@@ -1,0 +1,516 @@
+@extends('layouts.office')
+@section('title', "CMS My Haldin")
+@section('content')
+{{--<div class="content">
+    <div class="block block-themed"> 
+        <div class="block-header bg-gd-sea pl-20 pr-20 pt-15 pb-15">
+            <h3 class="block-title">ProjectITintership</h3>
+            <div class="block-options">
+                <button type="button" class="btn-block-option" data-toggle="block-option" data-action="fullscreen_toggle"></button>
+            </div>
+        </div>
+        <div class="block">
+            <div class="block-content block-content-full">
+                <div class="block-header p-0 mb-20">
+                    <div class="block-title">
+                        <button class="btn btn-primary btn-square" data-toggle="modal" data-target="#addData"><i class="fa fa-plus mr-2"></i>Add</button>
+                    </div>
+                </div>
+                <table class="table table-bordered table-vcenter" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>title</th>
+                            <th>description</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div> 
+        </div> 
+    </div>
+</div>
+@endsection
+
+@section('css')
+    <link rel="stylesheet" href="{{ asset('assets/js/plugins/sweetalert2/sweetalert2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/js/plugins/datatables/dataTables.bootstrap4.css') }}">
+    <style>
+    label {
+        font-weight: 800;
+    }
+    </style>
+@endsection
+
+@section('script')
+    <script src="{{ asset('assets/js/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/datatables/dataTables.bootstrap4.min.js') }}"></script>
+    <script>
+        
+        $(document).ready(function () {
+            $("#dataTable").DataTable({
+                processing: true,
+                // serverSide: true,
+                // scrollX: true,
+                scrollY: "500px",
+                "pageLength": 50,
+                ajax: "{{ route('getData1') }}",
+                columns: [
+                    {data: 'title', name: 'title'},
+                    {data: 'description', name: 'description'},
+                    {data: 'status', name: 'status'},
+                    {data: 'action', name: 'action', orderable: false, searchable: false},
+                ],
+            });
+        });
+    </script>
+    <script>
+        function changeStatus(todoId, status) {
+            var url = '/todo/' + todoId + '/update-status';
+            var data = {
+                _token: '{{ csrf_token() }}',
+                status: status
+            };
+
+            fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                // Update tampilan tabel secara dinamis     
+            });
+        }
+    </script>
+@endsection
+--}}
+<div class="content">
+    <div class="block block-themed"> 
+        <div class="block-header bg-gd-sea pl-20 pr-20 pt-15 pb-15">
+            <h3 class="block-title">ProjectITintership</h3>
+            <div class="block-options">
+                <button type="button" class="btn-block-option" data-toggle="block-option" data-action="fullscreen_toggle"></button>
+            </div>
+        </div>
+        <div class="block">
+            <div class="block-content block-content-full">
+                <div class="block-header p-0 mb-20">
+                    <div class="block-title">
+                        <button class="btn btn-primary btn-square" data-toggle="modal" data-target="#addData"><i class="fa fa-plus mr-2"></i>Add</button>
+                    </div>
+                </div>
+                <table class="table table-bordered table-vcenter" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>title</th>
+                            <th>description</th>
+                            <th>status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div> 
+        </div> 
+    </div>
+</div>
+
+<!-- Modal Tambah Data -->
+<div class="modal fade" id="addData" tabindex="-1" role="dialog" aria-labelledby="addDataTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form action="{{ route('TambahTodo') }}" method="POST">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addDataTitle">Tambah Data</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="title">title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Deskripsi</label>
+                        <textarea class="form-control" id="description" name="description" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Select todo status</label>
+                        <select class="form-control" id="status" name="status">
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit Data -->
+<div class="modal fade" id="editData" tabindex="-1" role="dialog" aria-labelledby="editDataTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="editForm" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editDataTitle">Edit Data</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="editTitle">title</label>
+                        <input type="text" class="form-control" id="editTitle" name="editTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDescription">description</label>
+                        <textarea class="form-control" id="editDescription" name="editDescription" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDescription">status</label>
+                        <textarea class="form-control" id="editDescription" name="editDescription" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Hapus Data -->
+<div class="modal fade" id="deleteData" tabindex="-1" role="dialog" aria-labelledby="deleteDataTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteDataTitle">Hapus Data</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Anda yakin ingin menghapus data ini?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-danger">Hapus</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('css')
+    <link rel="stylesheet" href="{{ asset('assets/js/plugins/sweetalert2/sweetalert2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/js/plugins/datatables/dataTables.bootstrap4.css') }}">
+    <style>
+        label {
+            font-weight: 800;
+        }
+    </style>
+@endsection
+
+@section('script')
+    <script src="{{ asset('assets/js/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/datatables/dataTables.bootstrap4.min.js') }}"></script>
+    <script>
+        function editModal(json) {
+            $('#editData').modal('show');
+            $('#editForm').attr('action', "{{ url('/list/edit') }}/" + json.id);
+            $('#editTitle').val(json.title);
+            $('#editDescription').val(json.description);
+        }
+
+        function showDeleteModal(todoId) {
+            var url = '/list/delete/' + todoId + '/modal';
+
+            fetch(url)
+            .then(response => response.text())
+            .then(data => {
+                $('#deleteData .modal-body').html(data);
+                $('#deleteData').modal('show');
+            });
+        }
+
+        $(document).ready(function () {
+            $("#dataTable").DataTable({
+                drawCallback: function () {
+                    $('.js-swal-delete').on('click', function () {
+                        var url = $(this).data("url");
+                        swal({
+                            title: 'Anda Yakin?',
+                            text: 'Data yang dihapus tidak dapat dikembalikan lagi!',
+                            type: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d26a5c',
+                            confirmButtonText: 'Iya, hapus!',
+                            html: false,
+                            preConfirm: function () {
+                                return new Promise(function (resolve) {
+                                    setTimeout(function () {
+                                        resolve();
+                                    }, 50);
+                                });
+                            }
+                        }).then(function (result) {
+                            if (result.value) {
+                                window.location = url;
+                            } else if (result.dismiss === 'cancel') {
+                                swal('Dibatalkan', 'Data Anda tetap aman :)', 'error');
+                            }
+                        });
+                    });
+                },
+                processing: true,
+                scrollY: "500px",
+                "pageLength": 50,
+                ajax: "{{ route('getData1') }}",
+                columns: [
+                    { "data": null, "sortable": false, render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    { data: 'title', name: 'title' },
+                    { data: 'description', name: 'description' },
+                    { data: 'status', name: 'status'},
+                    { data: 'action', name: 'action', orderable: false, searchable: false }
+                ],
+            });
+        });
+    </script>
+@endsection
+
+
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Support\Facades\Input;
+use Illuminate\Http\Request;
+use Yajra\Datatables\DataTables;
+use App\Todo;
+use Auth;
+
+class TodoController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+
+     public function getData1()
+{
+    $todos = Todo::select('id', 'title', 'description', 'status')->get();
+
+    return DataTables::of($todos)
+        ->addColumn('action', function ($data) {
+            $val = [
+                'title' => $data->title,
+                'description' => $data->description,
+                'status' => $data->status
+            ];
+
+            $editButton = "<a href='javascript:void(0)' onclick='editModal(".json_encode($val).")' class='btn btn-sm btn-primary btn-square' title='Update'><i class='fa fa-edit'></i></a>";
+            $deleteButton = "<button data-url=".route('HapusTodo', $data->id)." class='btn btn-sm btn-danger btn-square js-swal-delete' title='Delete'><i class='si si-trash'></i></button>";
+
+            return $editButton . $deleteButton;
+        })
+        ->rawColumns(['action'])
+        ->make(true);
+}
+
+     
+     
+
+     public function TambahTodo(Request $request)
+    {
+        $data=$request->all();
+        $limit=[
+            'title'          => 'required|unique:todos|string'
+        ];
+        $validator = Validator($data, $limit);
+        if ($validator->fails()){
+            return redirect()->back()
+            ->withErrors($validator)
+            ->withInput();
+        } else {
+            Todo::create([
+                'description'          => $request->input('description'),
+                'status'   => $request->input('status')
+            ]);
+            return redirect()->back()
+            ->with([
+                'type'      => 'info',
+                'message'   => '<i class="em em-email mr-2"></i>Successfully added Todo!'
+            ]);
+        }
+    }
+
+    public function EditTodo(Request $request, $id) 
+    {
+        $dataEdit = Todo::findOrFail($id);
+        $data=$request->all();
+        $limit=[
+            'title'     => 'string|required|unique:todos,title,' . $dataEdit->id
+        ];
+        $validator = Validator($data, $limit);
+        if ($validator->fails()){
+            return redirect()->back()
+            ->withErrors($validator)
+            ->withInput();
+        } else {
+            $dataEdit->description         = $request->input('description');
+            $dataEdit->status  = $request->input('status');
+            $dataEdit->save();
+            return redirect()->back()
+            ->with([
+                'type'    => 'info',
+                'message' => '<i class="em em-email mr-2"></i>Successfully changed todos'
+            ]);
+        }
+    }
+
+    public function HapusTodo($id) 
+    {
+        $todoso = Todo::find($id);
+        $todoso->delete();
+        return redirect()->back()->with([
+             'type'      => 'danger',
+             'message'   => '<i class="em em-email mr-2"></i>Successfully deleted!'
+        ]);
+    }
+   
+}
+
+Route::group(['prefix' => 'list'], function () {
+    Route::get('/', function () {
+    return view('todo.list');
+    })->name('todo.list')->middleware('auth');
+    Route::get('/data', 'TodoController@getData1')->name('getData1')->middleware('auth');
+    Route::post('/post', 'TodoController@TambahTodo')->name('TambahTodo')->middleware('auth');
+    Route::put('/edit/{id}', 'TodoController@EditTodo')->name('EditTodo')->middleware('auth');
+    Route::get('/delete/{id}', 'TodoController@HapusTodo')->name('HapusTodo')->middleware('auth');
+
+});
+
+add
+
+@extends('layouts.office')
+@section('title', "Form Reservation Room")
+@section('content')
+<div class="container">
+	<br>
+    <div class="row justify-content-center">
+    	<div class="col-md-6">
+    		<h2>Add example</h2>
+    	</div>
+    	<div class="col-md-6">
+    		<div class="float-right">
+    			<a href="{{ route('todo.index') }}" class="btn btn-primary">Back</a>
+    		</div>
+    	</div>
+    	<br>
+        <div class="col-md-12">
+        	@if (session('success'))
+                <div class="alert alert-success" role="alert">
+                    {{ session('success') }}
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="alert alert-error" role="alert">
+                    {{ session('error') }}
+                </div>
+            @endif
+			<form action="{{ route('todo.store') }}" method="POST">
+				@csrf
+				<div class="form-group">
+					<label for="title">Title:</label>
+					<input type="text" class="form-control" id="title" name="title">
+				</div>
+				<div class="form-group">
+					<label for="description">Description:</label>
+					<textarea name="description" class="form-control" id="description" rows="5"></textarea>
+				</div>
+			<div class="form-group">
+				<label for="status">Select todo status</label>
+				<select class="form-control" id="status" name="status">
+					<option value="pending">Pending</option>
+					<option value="completed">Completed</option>
+				</select>
+			</div>
+				<button type="submit" class="btn btn-primary">Submit</button>
+			</form>
+        </div>
+    </div>
+</div>
+@endsection
+
+edit
+
+@extends('layouts.office')
+@section('title', "CMS My Haldin")
+@section('content')
+<div class="container">
+	<br>
+    <div class="row justify-content-center">
+    	<div class="col-md-6">
+    		<h2>Edit example</h2>
+    	</div>
+    	<div class="col-md-6">
+    		<div class="float-right">
+    			<a href="{{ route('todo.index') }}" class="btn btn-primary">Back</a>
+    		</div>
+    	</div>
+    	<br>
+        <div class="col-md-12">
+        	@if (session('success'))
+                <div class="alert alert-success" role="alert">
+                    {{ session('success') }}
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="alert alert-error" role="alert">
+                    {{ session('error') }}
+                </div>
+            @endif
+			<form action="{{ route('todo.update', ['todo' => $todo->id]) }}" method="POST">
+				@csrf
+                @method('PUT')
+				<div class="form-group">
+					<label for="title">Title:</label>
+					<input type="text" class="form-control" id="title" name="title" value="{{ $todo->title }}">
+				</div>
+				<div class="form-group">
+					<label for="description">Description:</label>
+					<textarea name="description" class="form-control" id="description" rows="5">{{ $todo->description }}</textarea>
+				</div>
+				<div class="form-group">
+				<label for="status">Select todo status</label>
+				<select class="form-control" id="status" name="status">
+					<option value="pending" @if ($todo->status == 'pending') selected @endif>Pending</option>
+					<option value="completed" @if ($todo->status == 'completed') selected @endif>Completed</option>
+				</select>
+				</div>
+				<button type="submit" class="btn btn-primary">Submit</button>
+			</form>
+        </div>
+    </div>
+</div>
+@endsection
