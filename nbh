@@ -1,0 +1,444 @@
+@extends('layouts.office')
+@section('title', "CMS My Haldin")
+@section('content')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<div class="content">
+    <div class="block block-themed"> 
+        <div class="block-header bg-gd-sea pl-20 pr-20 pt-15 pb-15">
+            <h3 class="block-title">ProjectITintership</h3>
+            <div class="block-options">
+                <button type="button" class="btn-block-option" data-toggle="block-option" data-action="fullscreen_toggle"></button>
+            </div>
+        </div>
+        <div class="block">
+            <div class="block-content block-content-full">
+                <div class="block-header p-0 mb-20">
+                    <div class="block-title">
+                        <button class="btn btn-primary btn-square" data-toggle="modal" data-target="#addData"><i class="fa fa-plus mr-2"></i>Add</button>
+                    </div>
+                </div>
+                <table class="table table-bordered table-vcenter" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>id</th>
+                            <th>title</th>
+                            <th>description</th>
+                            <th>status</th>
+                            <th>file</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div> 
+        </div> 
+    </div>
+</div>
+
+<!-- Modal Tambah Data -->
+
+<div class="modal fade" id="addData" tabindex="-1" role="dialog" aria-labelledby="addDataTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form  id="addForm" action="{{ route('TambahTodo') }}" method="POST">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addDataTitle">Tambah Data</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label >title</label>
+                        <input type="text" class="form-control" id="addtitle" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Deskripsi</label>
+                        <textarea class="form-control" id="adddesc" name="description" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Select todo status</label>
+                        <select class="form-control" id="addstatus" name="status">
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label >File</label>
+                            <input type="file" class="form-control" id="file" name="file" required>
+                        </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-alt-primary">
+                        <i class="fa fa-save"></i> Simpan
+                      </button>
+                      <button type="button" class="btn btn-alt-secondary" data-dismiss="modal">Kembali</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editData" role="dialog" aria-labelledby="editModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-popout" role="document">
+        <div class="modal-content">
+            <div class="block block-themed block-transparent mb-0">
+              <div class="block-header bg-gd-sea p-10">
+                <h3 class="block-title"><i class="fa fa-edit"></i> Edit data</h3>
+                <div class="block-options">
+                  <button type="button" class="btn-block-option" data-dismiss="modal" aria-label="Close">
+                    <i class="si si-close"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <form id="editForm" method="post" autocomplete="off">
+                {!! method_field('PUT') !!}
+                {!! csrf_field() !!}
+                <div class="block-content">
+                    <div class="row">
+                        <div class="form-group col-md-12">
+                            <label for="titleInput">Title</label><span style="color: blue;"> *</span>
+                            <input type="text" class="form-control" name="title" id="titleInput" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-md-12">
+                            <label for="descInput">Description</label>
+                            <input type="text" class="form-control" id="descInput" name="description">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-md-12">
+                            <label for="status">Select todo status</label>
+                            <select class="form-control" id="status" name="status">
+                                <option value="pending">Pending</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-alt-primary">
+                      <i class="fa fa-save"></i> Simpan
+                    </button>
+                    <button type="button" class="btn btn-alt-secondary" data-dismiss="modal">Kembali</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('css')
+    <link rel="stylesheet" href="{{ asset('assets/js/plugins/sweetalert2/sweetalert2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/js/plugins/datatables/dataTables.bootstrap4.css') }}">
+    <style>
+        label {
+            font-weight: 800;
+        }
+    </style>
+@endsection
+
+@section('script')
+
+    <script src="{{ asset('assets/js/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/datatables/dataTables.bootstrap4.min.js') }}"></script>
+    <script>
+    function editModal(json) {
+          $('#editData').modal('show');
+          $('#editForm').attr('action', "{{ url('/list/edit') }}/" + json.id);
+          $('#titleInput').val(json.title);
+          $('#descInput').val(json.description);
+          $('#status').val(json.status);
+        }
+        $(document).ready(function () {
+            $("#dataTable").DataTable({
+                  drawCallback: function() {
+                  $('.delete').on('click', function() {
+                  var routers = $(this).data("url");
+                   swal({
+                     title: 'Anda Yakin?',
+                     text: 'Data yang dihapus tidak dapat dikembalikan lagi!',
+                     type: 'warning',
+                     showCancelButton: true,
+                     confirmButtonColor: '#d26a5c',
+                     confirmButtonText: 'Iya, hapus!',
+                     html: false,
+                     preConfirm: function() {
+                return new Promise(function(resolve) {
+                    setTimeout(function() {
+                        resolve();
+                    }, 50);
+                });
+            }
+        }).then(function(result) {
+            if (result.value) {
+                window.location.href = routers;
+            } else if (result.dismiss === 'cancel') {
+                swal('Dibatalkan', 'Data Anda aman :)', 'error');
+            }
+        });
+    });
+
+  },
+                processing: true,
+                //serverSide: true,
+                scrollY: "500px",
+                "pageLength": 50,
+                ajax: "{{ route('getData1') }}",
+                columns: [
+                    { "data": null,"sortable": false, render: function (data, type, row, meta) 
+                        {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }  
+                    },
+                    { data: 'title', name: 'title' },
+                    { data: 'description', name: 'description' },
+                    { data: 'status', name: 'status'},
+                    { data: 'file', name: 'file'},
+                    { data: 'action', name: 'action', orderable: false, searchable: false }
+],
+                
+            });
+        });
+            $(document).on('submit', '#editForm', function (e) {
+                e.preventDefault();
+                var form = $(this);
+                var url = form.attr('action');
+                var method = form.attr('method');
+                var data = form.serialize();
+
+                $.ajax({
+                    url: url,
+                    type: method,
+                    data: data,
+                    beforeSend: function () {
+                        $('.btn-primary').attr('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Menyimpan');
+                    },
+                    success: function (response) {
+                        $('#editData').modal('hide');
+                        $('#dataTable').DataTable().ajax.reload();
+                        form[0].reset();
+                        $('.btn-primary').attr('disabled', false).html('Simpan');
+                    
+                        // Tampilkan notifikasi
+                        Swal.fire({
+                            title: 'Sukses',
+                            text: 'Data berhasil diupdate.',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        var err = eval("(" + xhr.responseText + ")");
+                        console.log(err);
+                    
+                        // Tampilkan notifikasi error
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Terjadi kesalahan. Silakan coba lagi.',
+                            icon: 'error',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    
+                        $('.btn-primary').attr('disabled', false).html('Simpan');
+                    }
+                });
+            });
+
+ 
+  
+function addModal(json) {
+  $('#eaddData').modal('show');
+  $('#addForm').attr('action', "{{ url('/list/post') }}/" + json.id);
+  $('#addtittle').val(json.title);
+  $('#adddesc').val(json.description);
+  $('#addstatus').val(json.status);
+}
+
+$(document).on('submit', '#addForm', function (e) {
+    e.preventDefault();
+    var form = $(this);
+    var url = form.attr('action');
+    var method = form.attr('method');
+    var data = form.serialize();
+
+    $.ajax({
+        url: url,
+        type: method,
+        data: data,
+        beforeSend: function () {
+            $('.btn-primary').attr('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Menyimpan');
+        },
+        success: function (response) {
+            $('#addData').modal('hide');
+            $('#dataTable').DataTable().ajax.reload();
+            form[0].reset();
+            $('.btn-primary').attr('disabled', false).html('Simpan');
+
+            // Tampilkan notifikasi
+            Swal.fire({
+                title: 'Sukses',
+                text: 'Data berhasil ditambahkan.',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        },
+        error: function (xhr, status, error) {
+            var err = eval("(" + xhr.responseText + ")");
+            console.log(err);
+
+            // Tampilkan notifikasi error
+            Swal.fire({
+                title: 'Warning',
+                text: 'Tittle sudah digunakan.',
+                icon: 'error',
+                showConfirmButton: false,
+                timer: 1500
+            });
+
+            $('.btn-primary').attr('disabled', false).html('Simpan');
+        }
+    });
+});
+</script>
+
+    
+@endsection
+
+
+<?php
+
+namespace App\Http\Controllers;
+use Illuminate\Support\Facades\Validator;
+
+use Illuminate\Support\Facades\Input;
+use Illuminate\Http\Request;
+use Yajra\Datatables\DataTables;
+use App\Todo;
+use Auth;
+class TodoController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+
+     public function getData1()
+{
+    $todos = Todo::get();
+
+    return DataTables::of($todos)
+        ->addColumn('action', function ($data) {
+            $val = array(
+                'id'            => $data->id,
+                'title'         => $data->title,
+                'description'   => $data->description,
+                'status'        => $data->status,
+                'file'          => $data->file
+            );
+
+            return "<a href='javascript:void(0)' onclick='editModal(".json_encode($val).")' class='btn btn-sm btn-primary btn-square' title='Update'><i class='fa fa-edit'></i></a>
+            <button data-url='" . route('list.delete', $data->id) . "' class='btn btn-sm btn-outline-danger btn-square delete' title='Delete'><i class='fa fa-trash'></i></button>";
+
+
+        })
+        ->make(true);
+}
+    public function TambahTodo(Request $request)
+{
+    $data = $request->all();
+    $limit = [
+        'title' => 'required|unique:todos|string'
+    ];
+    $validator = Validator::make($data, $limit);
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'errors' => $validator->errors()
+        ], 422);
+    } else {
+        Todo::create([
+            'title'       => $request->input('title'),
+            'description' => $request->input('description'),
+            'status'      => $request->input('status'),
+            'file'        => $request->input()
+        ]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Successfully added Todo!'
+        ], 200);
+    }
+}
+
+
+    public function EditTodo(Request $request, $id) 
+    {
+        // dd($id);
+        $dataEdit = Todo::findOrFail($id);
+
+        $data=$request->all();
+        // dd($data);
+        $limit=[
+            'title'     => 'string|required|unique:todos,title,' . $dataEdit->id
+        ];
+        $validator = Validator($data, $limit);
+        if ($validator->fails()){
+            return redirect()->back()
+            ->withErrors($validator)
+            ->withInput();
+        } else {
+            $dataEdit->title   = $request->input('title');
+            $dataEdit->description   = $request->input('description');
+            $dataEdit->status        = $request->input('status');
+            $dataEdit->file          = $request->input('file');
+        // dd($request->input('description'));
+
+            $dataEdit->save();
+            return redirect()->back()
+            ->with([
+                'type'    => 'info',
+                'message' => '<i class="em em-email mr-2"></i>Successfully changed todos'
+            ]);
+        }
+    }
+
+   
+    public function HapusTodo($id)
+    {
+        $sr = Todo::find($id);
+        if($sr->delete()) {
+            return redirect()->back()->with([
+                'type'      => 'info',
+                'message'   => '<i class="em em-email em-svg mr-2"></i>Successfully deleted!'
+           ]);
+        } else {
+            return redirect()->back()->with([
+                'type'      => 'warning',
+                'message'   => '<i class="em em-email em-svg mr-2"></i>Terjadi kesalahan!'
+           ]);
+        }
+    }
+    
+   
+}
+
+
+Route::group(['prefix' => 'list'], function () {
+    Route::get('/', function () {
+    return view('todo.list');
+    })->name('todo.list')->middleware('auth');
+    Route::get('/data', 'TodoController@getData1')->name('getData1')->middleware('auth');
+    Route::post('/post', 'TodoController@TambahTodo')->name('TambahTodo')->middleware('auth');
+    Route::put('/edit/{id}', 'TodoController@EditTodo')->name('EditTodo')->middleware('auth');
+    Route::get('/delete/{id}', 'TodoController@HapusTodo')->name('list.delete')->middleware('auth');
+
+
+});
