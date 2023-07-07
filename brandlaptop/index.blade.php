@@ -2,36 +2,6 @@
 @section('title', "CMS My Haldin")
 @section('content')
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<div class="divAddProdukFokus" style="display:none;">
-    <div id="addList">
-        <div class="row form-group-product">
-            <div class="form-group col-md-6">
-                <label>Nama Laptop<span style="color: blue;"> *</span></label>
-                <input type="text" class="form-control nama_laptop" name="nama_laptop[]"  maxlength="20" required>
-            </div>  
-            <div class="form-group col-md-6">
-                <label>Price<span style="color: blue;"> *</span></label>
-                <input type="text" class="form-control price" id="addprice" name="price[]" required maxlength="11" required>
-            </div>
-            <div class="form-group col-md-6">
-                <label>Discount<span style="color: blue;"> *</span></label>
-                <input type="text" class="form-control discount" id="adddiscount" name="discount[]" required maxlength="11" required>
-            </div>
-            <div class="form-group col-md-5">
-                <label>Quantity<span style="color: blue;"> *</span></label>
-                <input type="text" class="form-control quantity" id="addqty" name="quantity[]" required maxlength="5" >
-             </div> 
-            <div class="form-group col-md-12">
-                <label for="addfile">File</label>
-                <input type="file" class="form-control-file" id="addfile" name="file[]" accept="image/*" multiple>
-                <small style="color:grey">* Tipe File: jpg, png</small><br>
-            </div>
-            <div class="form-group col-md-1">
-                <button id="buttonRemove" class="btn btn-warning" onclick="remLineAdd($(this))"><i class="fa fa-minus"></i></button>
-            </div>
-        </div>
-    </div>
-</div>
 <div class="content">
     <div class="block block-themed"> 
         <div class="block-header bg-gd-sea pl-20 pr-20 pt-15 pb-15">
@@ -51,8 +21,9 @@
                     <thead>
                         <tr>
                             <th>Nama Brand</th>
-                            <th>description</th>
-                            <th>status</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Total Asset Brand</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -75,7 +46,7 @@
                     </div>
                 </div>
             </div>
-            <form method="post" action="{{ route('AddBrandLaptop') }}" id="test" enctype="multipart/form-data">
+            <form method="post" action="{{ route('AddBrandLaptop') }}" id="addBrandForm" enctype="multipart/form-data">
                 {{ csrf_field() }}
                 <div class="block-content">
                     <div id="alert3" class="alert alert-info" style="display:none;"></div>
@@ -83,7 +54,7 @@
                         <div class="form-group col-md-6">
                             <label>Nama Brand Laptop<span style="color: blue;"> *</span></label>
                             <div class="input-group">
-                                <input type="text" class="form-control brand" id="addbrand" name="nama_brand" required>
+                                <input type="text" class="form-control nama" id="addbrand" name="nama_brand" required>
                             </div>
                         </div>
                         <div class="form-group col-md-6">
@@ -102,7 +73,7 @@
                         <input class="form-control" type="hidden" name="material_code[]" readOnly="readOnly" id="txt_name">
                         <div class="form-group col-md-6">
                             <label>Nama Laptop<span style="color: blue;"> *</span></label>
-                            <input type="text" class="form-control nama_laptop" name="nama_laptop[]"  maxlength="20" required>
+                            <input type="text" class="form-control nama" id="addnamalaptop" name="nama_laptop[]"  maxlength="20" required>
                         </div>  
                         <div class="form-group col-md-6">
                             <label>Price<span style="color: blue;"> *</span></label>
@@ -110,7 +81,7 @@
                         </div>
                         <div class="form-group col-md-6">
                             <label>Discount<span style="color: blue;"> *</span></label>
-                            <input type="text" class="form-control price" id="addprice" name="discount[]" required maxlength="11" required>
+                            <input type="text" class="form-control discount" id="addprice" name="discount[]" required maxlength="11" required>
                         </div>
                         <div class="form-group col-md-5">
                             <label>Quantity<span style="color: blue;"> *</span></label>
@@ -129,9 +100,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-alt-primary" id="htmlbtn">Submit</button>
-                    <button type="button" style="display:none;" class="btn btn-alt-primary" id="progbtn"><i class="fa fa-spinner fa-spin"></i></button>
+                <div class="modal-footer"> 
+                    <button type="submit" class="btn btn-alt-primary" id="btnSubmit1">Save</button>
+                    <button type="button" style="display:none;" class="btn btn-alt-primary" id="btnLoading1"><i class="fa fa-spinner fa-spin"></i></button>
                     <button type="button" class="btn btn-alt-secondary" data-dismiss="modal">Tutup</button>
                 </div>
             </form>
@@ -164,7 +135,77 @@
     </div>
 </div>
 
+<div class="divAddProdukFokus" style="display:none;">
+    <div id="addList">
+        <div class="row form-group-product">
+            <div class="form-group col-md-6">
+                <label>Nama Laptop<span style="color: blue;"> *</span></label>
+                <input type="text" class="form-control namadiv" name="nama_laptop[]"  maxlength="20" required>
+            </div>  
+            <div class="form-group col-md-6">
+                <label>Price<span style="color: blue;"> *</span></label>
+                <input type="text" class="form-control price" id="addprice" name="price[]" required maxlength="11" required>
+            </div>
+            <div class="form-group col-md-6">
+                <label>Discount<span style="color: blue;"> *</span></label>
+                <input type="text" class="form-control discount" id="adddiscount" name="discount[]" required maxlength="11" required>
+            </div>
+            <div class="form-group col-md-5">
+                <label>Quantity<span style="color: blue;"> *</span></label>
+                <input type="text" class="form-control quantity" id="addqty" name="quantity[]" required maxlength="5" >
+             </div> 
+            <div class="form-group col-md-12">
+                <label for="addfile">File</label>
+                <input type="file" class="form-control-file" id="addfile" name="file[]" accept="image/*" multiple>
+                <small style="color:grey">* Tipe File: jpg, png</small><br>
+            </div>
+            <div class="form-group col-md-1">
+                <button id="buttonRemove" class="btn btn-warning" onclick="remLineAdd($(this))"><i class="fa fa-minus"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
+
+@push('additional-css')
+<link rel="stylesheet" href="{{ asset('assets/js/plugins/select2/css/select2.min.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/js/plugins/jquery-auto-complete/jquery.auto-complete.min.css') }}">
+<style>
+    .select2-selection__rendered {
+        line-height: 31px !important;
+    }
+    .select2-container .select2-selection--single {
+        height: 34px !important;
+    }
+    .select2-selection__arrow {
+        height: 34px !important;
+    }
+    @media screen {
+        #printSection {
+            display: none;
+        }
+    }
+
+    @media print {
+        body * {
+          visibility:hidden;
+        }
+        #printSection, #printSection * {
+          visibility:visible;
+        }
+        #printSection {
+          position:absolute;
+          left:0;
+          top:0;
+        }
+    }
+    .modal-lg {
+        max-width: 1200px;
+    }
+    .pac-container{z-index:2000 !important;}
+</style>
+@endpush
 
 @section('css')
     <link rel="stylesheet" href="{{ asset('assets/js/plugins/sweetalert2/sweetalert2.min.css') }}">
@@ -176,19 +217,45 @@
     </style>
 @endsection
 
-@section('script')
+@push('additional-js')
+<script src="{{ asset('assets/js/plugins/select2/js/select2.full.min.js') }}"></script>
+<script src="{{ asset('js/select2-handler.js') }}"></script>
+<script src="{{ asset('assets/js/plugins/jquery-auto-complete/jquery.auto-complete.min.js') }}"></script>
 
+@section('script')t
 <script src="{{ asset('assets/js/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
 <script src="{{ asset('assets/js/plugins/datatables/jquery.dataTables.min.js') }}"></script>
 <script src="{{ asset('assets/js/plugins/datatables/dataTables.bootstrap4.min.js') }}"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
-            $(document).ready(function () {
+   $(document).ready(function () {
             $.ajaxSetup({
                 headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $("#dataTable").DataTable({
+            $('.nama').on('input', function() {
+                var title = $(this).val();
+                var formattedTitle = title.replace(/\s/g, '');
+                   formattedTitle = formattedTitle.charAt(0).toUpperCase() + formattedTitle.slice(1);
+                 $(this).val(formattedTitle); 
+            });
+            $('.price').on('input', function() {
+                 var input = $(this).val().replace(/[^0-9]/g, '');
+                    if (input.length > 3) {
+                        input = input.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                     }
+                 $(this).val(input);
+             });
+             $('.quantity').on('input', function() {
+                 var input = $(this).val().replace(/[^0-9]/g, '');
+                  $(this).val(input);
+             });
+             $('.discount').on('input', function() {
+                  var input = $(this).val().replace(/[^0-9]/g, '');
+                   $(this).val(input);
+             });
+          $("#dataTable").DataTable({
                 drawCallback: function(){
                     $('.delete').on('click', function(){
                         var routers = $(this).data("url");
@@ -234,39 +301,11 @@
                 { data: 'nama_brand', name: 'nama_brand' },
                 { data: 'description', name: 'description' },
                 { data: 'status', name: 'status' },
+                { data: 'totalassetbrand', name: 'totalassetbrand' },
                 { data: 'action', name: 'action' }
             ],
-            });
-            $('#test').submit(function (e) {
-        e.preventDefault();
-        var form = $(this);
-        var url = form.attr('action');
-        var method = form.attr('method');
-        var formData = new FormData(form[0]);
-        $.ajax({
-            url: url,
-            type: method,
-            data: formData,
-            dataType: 'json',
-            processData: false,
-            contentType: false,
-            beforeSend: function () {
-            },
-            success: function (response) {
-                if (response.success) {
-                    console.log('Data berhasil ditambahkan!');
-                } else {
-                    console.log('Terjadi kesalahan: ' + response.message);
-                }
-            },
-            error: function (xhr, status, error) {
-                console.log('Terjadi kesalahan Ajax: ' + error);
-            },
-            complete: function () {
-            }
-        });
+         });
     });
-        });
         function actAdd()
         {
             $('.emptyDivAddProdukFokus').append($('.divAddProdukFokus').html());
@@ -276,15 +315,87 @@
         
             $('#' + 'addList-' + $('.emptyDivAddProdukFokus > div').length + ' > div > .form-group > #addCategorySelect').attr('id', 'addCategorySelect_' + $('.emptyDivAddProdukFokus > div').length);
             $('#' + 'addList-' + $('.emptyDivAddProdukFokus > div').length + ' > div > .form-group > #addProductSelect').attr('id', 'addProductSelect_' + $('.emptyDivAddProdukFokus > div').length);
-            $('#' + 'addList-' + $('.emptyDivAddProdukFokus > div').length + ' > div > .form-group > #ccSel').attr('id', 'ccSel_' + $('.emptyDivAddProdukFokus > div').length);
-           
-
-
-           initSelect(); 
+            $('#' + 'addList-' + $('.emptyDivAddProdukFokus > div').length + ' > div > .form-group > #ccSel').attr('id', 'ccSel_' + $('.emptyDivAddProdukFokus > div').length); 
         }
         function remLineAdd(event)
         {
           event.closest('.form-group-product').remove();
         }
+        function addModal(json) {
+            $('#addReq').modal('show');
+            $('#addBrandForm').attr('action', "{{ route('AddBrandLaptop') }}");
+            $('#addbrand').val(json.nama_brand);
+            $('#adddesc').val(json.description);
+            $('#addstatus').val(json.status);
+            $('#addnamalaptop').val(json.nama_laptop);
+            $('#addprice').val(json.price);
+            $('#addquantity').val(json.quantity);
+            $('#adddiscount').val(json.discount);
+            }
+            $(document).on('submit', '#addBrandForm', function(e) {
+                e.preventDefault();
+                var form = $(this);
+                var url = form.attr('action');
+                var method = form.attr('method');
+                var data = new FormData(form[0]);
+                $.ajax({
+                    url: url,
+                    type: method,
+                    data: data,
+                    processData: false,
+                    contentType: false,
+                    beforeSend: function() {
+                        $('.btn-primary').attr('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Menyimpan');
+                    },
+                    success: function(response) {
+                        console.log(response);
+                        $('#addReq').modal('hide');
+                        $('#dataTable').DataTable().ajax.reload();
+                        form[0].reset();
+                        $('.btn-primary').attr('disabled', false).html('Add');
+                        Swal.fire({
+                            title: 'Sukses',
+                            text: 'Data berhasil ditambahkan.',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        var err = eval("(" + xhr.responseText + ")");
+                        console.log(err);
+                        
+                        if (err.errors && err.errors.title) {
+                            var errorMessage = err.errors.title[0];
+                            Swal.fire({
+                                title: 'Warning',
+                                text: errorMessage,
+                                icon: 'error',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                        } else if (err.errors && err.errors.file) {
+                            var errorMessage = err.errors.file[0];
+                            Swal.fire({
+                                title: 'Warning',
+                                text: errorMessage,
+                                icon: 'error',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Warning',
+                                text: 'Terjadi kesalahan.',
+                                icon: 'error',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                        }
+                        $('.btn-primary').attr('disabled', false).html('Add');
+                    }
+                });
+            });
+        
 </script>
 @endsection
