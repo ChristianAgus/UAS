@@ -140,23 +140,23 @@
         <div class="row form-group-product">
             <div class="form-group col-md-6">
                 <label>Nama Laptop<span style="color: blue;"> *</span></label>
-                <input type="text" class="form-control namadiv" name="nama_laptop[]"  maxlength="20" required>
+                <input type="text" class="form-control namadiv" name="nama_laptop[]" id="namalaptop" maxlength="20" required>
             </div>  
             <div class="form-group col-md-6">
                 <label>Price<span style="color: blue;"> *</span></label>
-                <input type="text" class="form-control price" id="addprice" name="price[]" required maxlength="11" required>
+                <input type="text" class="form-control price" id="price" name="price[]" required maxlength="11" required>
             </div>
             <div class="form-group col-md-6">
                 <label>Discount<span style="color: blue;"> *</span></label>
-                <input type="text" class="form-control discount" id="adddiscount" name="discount[]" required maxlength="11" required>
+                <input type="text" class="form-control discount" id="discount" name="discount[]" required maxlength="11" required>
             </div>
             <div class="form-group col-md-5">
                 <label>Quantity<span style="color: blue;"> *</span></label>
-                <input type="text" class="form-control quantity" id="addqty" name="quantity[]" required maxlength="5" >
+                <input type="text" class="form-control quantity" id="qty" name="quantity[]" required maxlength="5" >
              </div> 
             <div class="form-group col-md-12">
                 <label for="addfile">File</label>
-                <input type="file" class="form-control-file" id="addfile" name="file[]" accept="image/*" multiple>
+                <input type="file" class="form-control-file" id="file" name="file[]" accept="image/*" multiple>
                 <small style="color:grey">* Tipe File: jpg, png</small><br>
             </div>
             <div class="form-group col-md-1">
@@ -234,12 +234,20 @@
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $('.nama').on('input', function() {
-                var title = $(this).val();
-                var formattedTitle = title.replace(/\s/g, '');
-                   formattedTitle = formattedTitle.charAt(0).toUpperCase() + formattedTitle.slice(1);
-                 $(this).val(formattedTitle); 
+            $('.delete-btn').click(function() {
+            var brandId = $(this).data('id');
+
+            $.ajax({
+                url: 'delete',
+                type: 'DELETE',
+                success: function(response) {
+                    console.log(response);
+                },
+                error: function(xhr) {
+                    console.log(xhr.responseText);
+                }
             });
+        });
             $('.price').on('input', function() {
                  var input = $(this).val().replace(/[^0-9]/g, '');
                     if (input.length > 3) {
@@ -249,15 +257,15 @@
              });
              $('.quantity').on('input', function() {
                  var input = $(this).val().replace(/[^0-9]/g, '');
-                  $(this).val(input);
+                 $(this).val(input);
              });
              $('.discount').on('input', function() {
                   var input = $(this).val().replace(/[^0-9]/g, '');
-                   $(this).val(input);
+                  $(this).val(input);
              });
           $("#dataTable").DataTable({
                 drawCallback: function(){
-                    $('.delete').on('click', function(){
+                    $('.delete-btn').on('click', function(){
                         var routers = $(this).data("url");
                         swal({
                             title: 'Anda Yakin?',
@@ -312,26 +320,35 @@
             $('#buttonRemove').attr('class', 'btn btn-warning');
             $('.emptyDivAddProdukFokus > #addList').attr('id', 'addList-' + $('.emptyDivAddProdukFokus > div').length);
             $('#' + 'addList-' + $('.emptyDivAddProdukFokus > div').length);
-        
-            $('#' + 'addList-' + $('.emptyDivAddProdukFokus > div').length + ' > div > .form-group > #addCategorySelect').attr('id', 'addCategorySelect_' + $('.emptyDivAddProdukFokus > div').length);
-            $('#' + 'addList-' + $('.emptyDivAddProdukFokus > div').length + ' > div > .form-group > #addProductSelect').attr('id', 'addProductSelect_' + $('.emptyDivAddProdukFokus > div').length);
-            $('#' + 'addList-' + $('.emptyDivAddProdukFokus > div').length + ' > div > .form-group > #ccSel').attr('id', 'ccSel_' + $('.emptyDivAddProdukFokus > div').length); 
+            $('#' + 'addList-' + $('.emptyDivAddProdukFokus > div').length + ' > div > .form-group > #price').attr('id', 'price_' + $('.emptyDivAddProdukFokus > div').length);
+            $('#' + 'addList-' + $('.emptyDivAddProdukFokus > div').length + ' > div > .form-group > #discount').attr('id', 'discount_' + $('.emptyDivAddProdukFokus > div').length);
+            $('#' + 'addList-' + $('.emptyDivAddProdukFokus > div').length + ' > div > .form-group > #qty').attr('id', 'qty_' + $('.emptyDivAddProdukFokus > div').length);
+            $('#' + 'addList-' + $('.emptyDivAddProdukFokus > div').length + ' > div > .form-group > #namalaptop').attr('id', 'namalaptop_' + $('.emptyDivAddProdukFokus > div').length);
+            price();
+        }
+        function price()
+        {
+            $('#price_' + $('.emptyDivAddProdukFokus > div').length).on('input', function() {
+                 var input = $(this).val().replace(/[^0-9]/g, '');
+                    if (input.length > 3) {
+                        input = input.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                     }
+                 $(this).val(input);
+             });
+             $('#discount_' + $('.emptyDivAddProdukFokus > div').length).on('input', function() {
+                  var input = $(this).val().replace(/[^0-9]/g, '');
+                  $(this).val(input);
+             });
+             $('#qty_' + $('.emptyDivAddProdukFokus > div').length).on('input', function() {
+                 var input = $(this).val().replace(/[^0-9]/g, '');
+                  $(this).val(input);
+             });
+             
         }
         function remLineAdd(event)
         {
           event.closest('.form-group-product').remove();
         }
-        function addModal(json) {
-            $('#addReq').modal('show');
-            $('#addBrandForm').attr('action', "{{ route('AddBrandLaptop') }}");
-            $('#addbrand').val(json.nama_brand);
-            $('#adddesc').val(json.description);
-            $('#addstatus').val(json.status);
-            $('#addnamalaptop').val(json.nama_laptop);
-            $('#addprice').val(json.price);
-            $('#addquantity').val(json.quantity);
-            $('#adddiscount').val(json.discount);
-            }
             $(document).on('submit', '#addBrandForm', function(e) {
                 e.preventDefault();
                 var form = $(this);
