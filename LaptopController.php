@@ -22,114 +22,137 @@ class LaptopController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-     public function getBrand()
-     {
-         $croso = BrandLaptop::get();
-     
-         return DataTables::of($croso)
-             ->addColumn('totalassetbrand', function ($data) {
-                 return 'Rp ' . number_format((float)$data->totalassetbrand, 0, ',', '.');
-             })
-             ->addColumn('action', function ($data) {
-                 $val = array(
-                     'id'              => $data->id,
-                     'nama_brand'      => $data->nama_brand,
-                     'description'     => $data->description,
-                     'status'          => $data->status,
-                 );
-                 return "<a href='javascript:void(0)' onclick='EditCrossan(" . json_encode($val) . ")' class='btn btn-sm btn-primary btn-square' title='Update'><i class='fa fa-edit'></i></a>
-                 <button data-url='" . route('Delete.Crossan', $data->id) . "' class='btn btn-sm btn-outline-danger btn-square delete' title='Delete'><i class='fa fa-trash'></i></button>
-                 ";
-             })
-             ->rawColumns(['action','totalassetbrand'])
-             ->make(true);
-     }
+            public function getBrand()
+                {
+                    $croso = BrandLaptop::get();
+                
+                    return DataTables::of($croso)
+                        ->addColumn('totalassetbrand', function ($data) {
+                            return 'Rp ' . number_format((float)$data->totalassetbrand, 0, ',', '.');
+                        })
+                        ->addColumn('action', function ($data) {
+                            $val = array(
+                                'id'              => $data->id,
+                                'nama_brand'      => $data->nama_brand,
+                                'description'     => $data->description,
+                                'status'          => $data->status,
+                            );
+                            return "<button data-url='" . route('Delete', $data->id) . "' class='btn btn-sm btn-outline-danger btn-square delete-btn' title='Delete'><i class='fa fa-trash'></i></button>
+                            <a href=".route('brandlaptop.invoice', $data->id)." class='btn btn-sm btn-outline-info btn-square' title='View invoice'><i class='fa fa-product-hunt'></i></a>
+                            ";
+                        })
+                        ->rawColumns(['action','totalassetbrand'])
+                        ->make(true);
+                }
 
-     public function AddBrandLaptop(Request $request)
-{
-    $data = $request->all();
+            public function viewInvoice($id)
+                {
+                    $brand = BrandLaptop::findOrFail($id);
+                    return view('brandlaptop.invoice', compact('brand'));
+                }
+            public function AddBrandLaptop(Request $request)
+                {
+                    $data = $request->all();
 
-    $limit = [
-        'nama_brand' => 'required|unique:brand_laptops,nama_brand|max:20'
-    ];
-
-    $validator = Validator::make($data, $limit);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'success' => false,
-            'errors' => $validator->errors()
-        ], 422);
-    }
-
-    try {
-        DB::beginTransaction();
-
-        $brand = BrandLaptop::create([
-            'nama_brand' => $request->nama_brand,
-            'status' => $request->status,
-            'description' => $request->description
-        ]);
-
-        if ($request->has('nama_laptop')) {
-            foreach ($request->nama_laptop as $index => $namaLaptop) {
-                if (!empty($namaLaptop)) {
-                    $price = str_replace(',', '', $request->price[$index]);
-                    $discount = $request->discount[$index];
-                    $quantity = $request->quantity[$index];
-                    if (!empty($discount)) {
-                        $total = $price * $quantity * (1 - $discount / 100);
-                    } else {
-                        $total = $price * $quantity;
-                    }
-                    $produkData = [
-                        'brand_laptop_id' => $brand->id,
-                        'nama_laptop'     => $namaLaptop,
-                        'price'           => $price,
-                        'discount'        => $price,
-                        'quantity'        => $quantity,
-                        'total'           => $total 
+                    $limit = [
+                        'nama_brand' => 'required|unique:brand_laptops,nama_brand|max:20'
                     ];
 
-                    if ($request->hasFile('file') && $request->file('file')[$index]->isValid()) {
-                        $gambar = $request->file('file')[$index];
-                        $gambarPath = $gambar->store('uploads', 'public');
-                        $produkData['file'] = $gambarPath;
+                    $validator = Validator::make($data, $limit);
+
+                    if ($validator->fails()) {
+                        return response()->json([
+                            'success' => false,
+                            'errors' => $validator->errors()
+                        ], 422);
                     }
 
-                    DB::table('produk_laptop')->insert($produkData);
+                    try {
+                        DB::beginTransaction();
+
+                        $brand = BrandLaptop::create([
+                            'nama_brand' => $request->nama_brand,
+                            'status' => $request->status,
+                            'description' => $request->description
+                        ]);
+
+                        if ($request->has('nama_laptop')) {
+                            foreach ($request->nama_laptop as $index => $namaLaptop) {
+                                if (!empty($namaLaptop)) {
+                                    $price = str_replace(',', '', $request->price[$index]);
+                                    $discount = $request->discount[$index];
+                                    $quantity = $request->quantity[$index];
+                                    if (!empty($discount)) {
+                                        $total = $price * $quantity * (1 - $discount / 100);
+                                    } else {
+                                        $total = $price * $quantity;
+                                    }
+                                    $produkData = [
+                                        'brand_laptop_id' => $brand->id,
+                                        'nama_laptop'     => $namaLaptop,
+                                        'price'           => $price,
+                                        'discount'        => $discount,
+                                        'quantity'        => $quantity,
+                                        'total'           => $total 
+                                    ];
+
+                                    if ($request->hasFile('file') && $request->file('file')[$index]->isValid()) {
+                                        $gambar = $request->file('file')[$index];
+                                        $gambarPath = $gambar->store('uploads', 'public');
+                                        $produkData['file'] = $gambarPath;
+                                    }
+
+                                    DB::table('produk_laptop')->insert($produkData);
+                                }
+                            }
+
+                            $totalAsset = DB::table('produk_laptop')
+                                ->where('brand_laptop_id', $brand->id)
+                                ->sum('total');
+
+                            // Update total asset brand
+                            BrandLaptop::where('id', $brand->id)
+                                ->update(['totalassetbrand' => $totalAsset]);
+
+                            DB::commit();
+
+                            return response()->json([
+                                'success' => true,
+                                'message' => 'Successfully added Brand and Laptop!'
+                            ]);
+                        } else {
+                            return response()->json([
+                                'success' => true,
+                                'message' => 'Berhasil menambahkan !'
+                            ], 200);
+                        }
+                    } catch (\Exception $e) {
+                        DB::rollback();
+
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'An error occurred: ' . $e->getMessage()
+                        ], 500);
+                    }
                 }
-            }
 
-            $totalAsset = DB::table('produk_laptop')
-                ->where('brand_laptop_id', $brand->id)
-                ->sum('total');
+                public function produkLaptop()
+                {
+                    return $this->hasMany(ProdukLaptop::class, 'brand_laptop_id')->withTrashed();
+                }
 
-            // Update total asset brand
-            BrandLaptop::where('id', $brand->id)
-                ->update(['totalassetbrand' => $totalAsset]);
+                public function destroy($id)
+                {
+                    $brand = BrandLaptop::findOrFail($id);
 
-            DB::commit();
+                    // Hapus semua ProdukLaptop terkait dengan BrandLaptop
+                    ProdukLaptop::where('brand_laptop_id', $brand->id)->delete();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Successfully added Brand and Laptop!'
-            ]);
-        } else {
-            return response()->json([
-                'success' => true,
-                'message' => 'Berhasil menambahkan !'
-            ], 200);
-        }
-    } catch (\Exception $e) {
-        DB::rollback();
+                    // Hapus BrandLaptop
+                    $brand->delete();
 
-        return response()->json([
-            'success' => false,
-            'message' => 'An error occurred: ' . $e->getMessage()
-        ], 500);
-    }
-}
+                    return response()->json(['message' => 'BrandLaptop berhasil dihapus']);
+                }
 
         
 }
