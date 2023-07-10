@@ -222,9 +222,10 @@ Route::group(['prefix' => 'Brand'], function () {
     Route::get('/', function () {
         return view('brandlaptop.index');
     })->name('brandlaptop.index')->middleware('auth');
-
+    Route::get('/invoice/{id}', 'LaptopController@viewInvoice')->name('brandlaptop.invoice')->middleware('auth');
     Route::get('/data', 'LaptopController@getBrand')->name('getBrand')->middleware('auth');
     Route::post('/post', 'LaptopController@AddBrandLaptop')->name('AddBrandLaptop')->middleware('auth');
+    Route::get('/delete/{id}', 'LaptopController@destroy')->name('Delete')->middleware('auth');
 });
 
 
