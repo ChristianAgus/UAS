@@ -80,11 +80,20 @@
                         </div>
                         <div class="form-group col-md-6">
                             <label>Device Code<span style="color: blue;"> *</span></label>
-                            <div id="device_code" class="form-control-static device_code" name="device_code[]"></div>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">#</span>
+                                </div>
+                                <input type="text" class="form-control device_code" id="device_code" name="device_code[]" readonly>
+                            </div>
                         </div>
                         <div class="form-group col-md-6">
                             <label>Device Price<span style="color: blue;"> *</span></label>
-                            <div id="device_price" name="device_price[]" class="form-control-static device_price">
+                            <div class="input-group">
+                                <div class="input-group-append">
+                                    <span class="input-group-text">Rp</span>
+                                </div>
+                                <input type="text" class="form-control device_price" id="device_price" name="device_price[]" readonly>
                             </div>
                         </div>
                         <div class="form-group col-md-6">
@@ -152,11 +161,21 @@
             </div>
             <div class="form-group col-md-6">
                 <label>Device Code<span style="color: blue;"> *</span></label>
-                <div id="devicecodeselect" name="device_code[]" class="form-control-static device_code"></div>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">#</span>
+                    </div>
+                    <input type="text" class="form-control device_code" id="devicecodeselect" name="device_code[]" readonly>
+                </div>
             </div>
             <div class="form-group col-md-6">
                 <label>Device Price<span style="color: blue;"> *</span></label>
-                <div id="devicepriceselect" name="device_price[]" class="form-control-static device_price"></div>
+                <div class="input-group">
+                    <div class="input-group-append">
+                        <span class="input-group-text">Rp</span>
+                    </div>
+                    <input type="text" class="form-control device_price" id="devicepriceselect" name="device_price[]" readonly>
+                </div>
             </div>
             <div class="form-group col-md-6">
                 <label>Discount<span style="color: blue;"> *</span></label>
@@ -288,8 +307,8 @@
                     },
                     success: function(response) {
                         if (response.status === 'success') {
-                            $('.device_code').text(response.deviceCode);
-                            $('.device_price').text(response.devicePrice)
+                            $('.device_code').val(response.deviceCode);
+                            $('.device_price').val(response.devicePrice)
                         } else {
                             alert('Device not found');
                         }
@@ -377,8 +396,8 @@
             },
             success: function(response) {
                 if (response.status === 'success') {
-                    deviceCode.text(response.deviceCode);
-                    devicePrice.text(response.devicePrice);
+                    deviceCode.val(response.deviceCode);
+                    devicePrice.val(response.devicePrice);
                 } else {
                     alert('Device not found');
                 }
